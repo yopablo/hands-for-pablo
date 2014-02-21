@@ -1,44 +1,61 @@
-#include "testApp.h"
-
+#include "ofHands.h"
+using namespace ofxCv;
+using namespace cv;
 //--------------------------------------------------------------
-void testApp::setup(){
+void ofHands::setup(){
     
     cam.initGrabber(320, 240);
     
     bIsRecording = false;
     mTimer.setup(3000);
-    ofAddListener(mTimer.TIMER_COMPLETE, this, &testApp::timerEnded);
-    mImg.allocate(320, 240, OF_IMAGE_GRAYSCALE);
-    mPlayers.resize((ofGetWidth()/cam.getWidth())*(ofGetHeight()/cam.getHeight()));
-    
+    ofAddListener(mTimer.TIMER_COMPLETE, this, &ofHands::timerEnded);
+    imitate(cam, mImg);
+    mCurrentPos = -1;
+    mSize = 0;
 }
 
 //--------------------------------------------------------------
-void testApp::update(){
+void ofHands::update(){
     cam.update();
 	
-	if (cam.isFrameNew() && bIsRecording){
-        mRecorder.addFrame(mImg);
+	if (cam.isFrameNew()){
+        convertColor(cam, mImg, CV_RGB2GRAY);
+        mImg.update();
+        if(bIsRecording)
+            mRecorder.addFrame(mImg);
     }
     
     if(mFileBuffer.size() > 0){
-        ofxImageSequence * fooSequence = mPlayers[mCurrentPos];
-        fooSequence->loadSequence(ofToDataPath(mFileBuffer.front()));
-        fooSequence->setFrameRate(ofRandom(10, 24));
+        mCurrentPos++;
+        if(mCurrentPos >= mPlayers.size())
+            mCurrentPos = 0;
+    
+        ofxImageSequence * fooPlayer = new ofxImageSequence();
+        
+        fooPlayer->loadSequence(mFileBuffer[0]);
+        fooPlayer->setFrameRate(ofRandom(10, 24));
+        mPlayers.push_front(fooPlayer);
+        if(mPlayers.size() > ofGetWidth()/320*ofGetHeight()/240){
+            ofxImageSequence * player = mPlayers.back();
+            mPlayers.pop_back();
+            delete player;
+        }
         mFileBuffer.pop_front();
     }
 }
 
-void testApp::timerEnded(int & args){
+void ofHands::timerEnded(int & args){
     bIsRecording = false;
     
     mFileBuffer.push_back(mCurrentFile);
     
     if(mRecorder.isThreadRunning() && mRecorder.q.size() == 0)
         mRecorder.stopThread();
+    
+
 }
 //--------------------------------------------------------------
-void testApp::draw(){
+void ofHands::draw(){
     ofBackground(125);
     mImg.draw(0,0);
     
@@ -65,12 +82,12 @@ void testApp::draw(){
     
 }
 
-void testApp::exit(){
+void ofHands::exit(){
     mRecorder.waitForThread();
 }
 
 //--------------------------------------------------------------
-void testApp::keyPressed(int key){
+void ofHands::keyPressed(int key){
     if(key == 'r' && !bIsRecording){
         
         mCurrentFile = ofGetTimestampString();
@@ -95,41 +112,41 @@ void testApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void testApp::keyReleased(int key){
+void ofHands::keyReleased(int key){
     
 }
 
 //--------------------------------------------------------------
-void testApp::mouseMoved(int x, int y){
+void ofHands::mouseMoved(int x, int y){
     
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button){
+void ofHands::mouseDragged(int x, int y, int button){
     
 }
 
 //--------------------------------------------------------------
-void testApp::mousePressed(int x, int y, int button){
+void ofHands::mousePressed(int x, int y, int button){
     
 }
 
 //--------------------------------------------------------------
-void testApp::mouseReleased(int x, int y, int button){
+void ofHands::mouseReleased(int x, int y, int button){
     
 }
 
 //--------------------------------------------------------------
-void testApp::windowResized(int w, int h){
+void ofHands::windowResized(int w, int h){
     
 }
 
 //--------------------------------------------------------------
-void testApp::gotMessage(ofMessage msg){
+void ofHands::gotMessage(ofMessage msg){
     
 }
 
 //--------------------------------------------------------------
-void testApp::dragEvent(ofDragInfo dragInfo){
+void ofHands::dragEvent(ofDragInfo dragInfo){
     
 }

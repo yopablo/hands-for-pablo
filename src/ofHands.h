@@ -5,7 +5,8 @@
 #include "ofxImageSequence.h"
 #include "ofxSimpleTimer.h"
 #include "ofxCv.h"
-class testApp : public ofBaseApp{
+#include "ofxOpenCv.h"
+class ofHands : public ofBaseApp{
 public:
     void setup();
     void update();
@@ -24,6 +25,7 @@ public:
     
     void timerEnded(int & args);
     
+
     ofxSimpleTimer mTimer;
     ofxImageSequenceRecorder mRecorder;
     string mCurrentFile;
@@ -31,9 +33,8 @@ public:
     deque<string> mFileBuffer;
     ofVideoGrabber cam;
     ofImage mImg;
-    vector<ofxImageSequence*> mPlayers;
+    deque<ofxImageSequence*> mPlayers;
     deque<float> mPos;
     int mCurrentPos;
-    bool recording;
-    
+    int mSize;
 };
